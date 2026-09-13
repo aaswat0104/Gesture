@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gesture Hold &amp; Transfer</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header>
+  <h1>Gesture Hold &amp; Transfer</h1>
+  <div>
+    <div id="status-line">connecting...</div>
+    <div id="presence-line">-- online</div>
+  </div>
+</header>
+
+<!-- Stays visible for the whole session, independent of join-panel --
+     this is the fix for "I can't see the link code": it used to live
+     inside join-panel, which gets hidden right after joining. -->
+<div id="link-code-display" hidden>
+  Your link code: <strong id="link-code-value"></strong>
+  — enter this on another device, or just open the app there: a
+  recognized face joins automatically once one device has seen you.
+</div>
+
+<section id="join-panel">
+  <p>First device: leave the code blank and click Join. On every device after
+     that, recognizing your face auto-joins you — no code needed.</p>
+  <input id="link-code-input" placeholder="link code (only if face recognition doesn't catch you)" maxlength="6" />
+  <input id="device-name-input" placeholder="device name (e.g. laptop, phone)" value="my device" />
+  <button id="join-btn">Join</button>
+</section>
+
+<div id="main-grid">
+  <section id="camera-section">
+    <div id="camera-frame">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="overlay" width="320" height="240"></canvas>
+      <div id="camera-off-placeholder" hidden>Camera off</div>
+    </div>
+    <button id="camera-toggle-btn" type="button">Turn camera off</button>
+    <div id="gesture-readout">hand: --</div>
+    <div id="face-readout">face: not recognized yet</div>
+    <div id="hint-line"></div>
+  </section>
+
+  <main id="app-panel" hidden>
+    <section id="selection-section">
+      <h2>Close your hand (fist) to grab this</h2>
+      <textarea id="text-selection" placeholder="Type text to hold..."></textarea>
+      <input type="file" id="file-selection" multiple />
+      <!-- Every chosen file appears here as a removable chip. Grabbing
+           bundles the text (if any) plus every chip into ONE transfer. -->
+      <ul id="queued-items-list"></ul>
+    </section>
+
+    <!-- Shown while an item is in transit: either "you're carrying this,
+         walk to another device" (on the grabbing device) or "incoming from
+         X, open your hand to receive" (on every other device of the same
+         person). Either way, Cancel aborts the transfer with no gesture
+         needed -- useful when you grabbed the wrong file or changed your mind. -->
+    <section id="transfer-pending-section" hidden>
+      <h2 id="transfer-pending-title">Transfer in progress</h2>
+      <div id="transfer-pending-desc"></div>
+      <button id="cancel-transfer-btn">Cancel</button>
+    </section>
+
+    <section id="held-section">
+      <h2>Received</h2>
+      <div id="activity-line"></div>
+      <div id="held-empty">Open your hand near another device to receive something.</div>
+      <!-- Scrolls internally (max-height in CSS) instead of growing the
+           whole page -- a large photo or a multi-file bundle used to push
+           page height past the viewport and put a scrollbar on <body>. -->
+      <div id="held-content" hidden></div>
+    </section>
+
+    <section id="devices-section">
+      <h2>Your devices</h2>
+      <ul id="devices-list"></ul>
+    </section>
+  </main>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

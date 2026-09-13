@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+tensorflow
+numpy
+insightface
+# GPU (DirectML) build for Windows -- swaps in DmlExecutionProvider so
+# face_engine.py can actually use a discrete/integrated GPU. If this package
+# isn't installed, face_engine.py still works fine on plain CPU-only
+# `onnxruntime` -- it detects the provider at runtime either way.
+onnxruntime-directml
+cryptography

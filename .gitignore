@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Local HTTPS dev certificate -- self-signed, regenerated automatically by
+# run_https.py on first launch. The private key should never be published.
+.certs/
+
+# Face recognition model cache (~340MB, auto-downloaded by insightface)
+.insightface_cache/
+gesture-hold-data/
+
+# Claude Code local session state
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Third-party tunnel binary from an earlier, abandoned approach -- the
+# project moved to local-only self-signed HTTPS (see run_https.py), no
+# external tunnel involved. 53MB binary has no reason to be in source control.
+tools/cloudflared.exe

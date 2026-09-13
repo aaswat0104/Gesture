@@ -1,0 +1,303 @@
+html, body {
+  height: 100%;
+}
+[hidden] {
+  display: none !important;
+}
+body {
+  font-family: system-ui, sans-serif;
+  /* Widened from 900px: on a normal desktop monitor that left huge empty
+     gutters on both sides while the actual controls stayed cramped. */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  background: #0f1115;
+  color: #e6e6e6;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+#status-line, #presence-line {
+  font-size: 0.85rem;
+  color: #9aa0a6;
+  text-align: right;
+}
+#face-readout {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #9aa0a6;
+}
+input, textarea, button {
+  font: inherit;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #3a3f4b;
+  background: #1a1d24;
+  color: #e6e6e6;
+}
+button {
+  cursor: pointer;
+  background: #2a6df4;
+  border: none;
+  color: white;
+}
+button:hover {
+  filter: brightness(1.1);
+}
+#join-panel {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 420px;
+  flex-shrink: 0;
+}
+#link-code-display {
+  background: #1a1d24;
+  border: 1px solid #2a6df4;
+  padding: 0.75rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+#link-code-value {
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+}
+
+/* Camera + controls side by side. Widened the camera column a touch (was
+   260px, felt cramped against the wider app-panel) and let app-panel's
+   sections form their own sub-grid so "Received" and "Your devices" sit
+   side by side instead of stacking the whole page tall with empty gutters. */
+#main-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1.25rem;
+  align-items: start;
+  flex: 1;
+  min-height: 0;
+}
+#camera-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+#camera-frame {
+  position: relative;
+  width: 300px;
+  height: 225px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+#camera-frame video, #camera-frame canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+#camera-off-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 0.9rem;
+  background: #14161b;
+}
+#camera-toggle-btn {
+  background: #2a2f3a;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.6rem;
+}
+video {
+  transform: scaleX(-1);
+}
+canvas {
+  transform: scaleX(-1);
+  pointer-events: none;
+}
+#gesture-readout, #face-readout {
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+#hint-line {
+  font-size: 0.8rem;
+  color: #e0a030;
+  min-height: 1.1em;
+}
+#app-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+  gap: 0.9rem;
+  min-width: 0;
+}
+/* Selection and transfer-pending are the "active" controls -- keep them
+   full width above the two-column results row so they read first. */
+#selection-section, #transfer-pending-section {
+  grid-column: 1 / -1;
+}
+#selection-section, #held-section, #transfer-pending-section, #devices-section {
+  background: #171a21;
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+#selection-section h2, #held-section h2, #transfer-pending-section h2, #devices-section h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+/* An in-flight grab/deliver: amber border makes it obviously distinct from
+   the settled "Received" panel below it. */
+#transfer-pending-section {
+  border: 1px solid #e0a030;
+}
+#transfer-pending-desc {
+  font-size: 0.85rem;
+  color: #cfd3da;
+  margin-bottom: 0.5rem;
+}
+#cancel-transfer-btn {
+  background: #b3392f;
+}
+textarea {
+  width: 100%;
+  min-height: 60px;
+  resize: vertical;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+#file-selection {
+  width: 100%;
+}
+
+/* Queued files/images waiting to be grabbed together as one bundle. */
+#queued-items-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+#queued-items-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #1a1d24;
+  border: 1px solid #3a3f4b;
+  border-radius: 999px;
+  padding: 0.25rem 0.3rem 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  max-width: 100%;
+}
+#queued-items-list li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+.remove-item-btn {
+  background: transparent;
+  border: none;
+  color: #9aa0a6;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.1rem 0.35rem;
+  border-radius: 50%;
+}
+.remove-item-btn:hover {
+  background: #3a3f4b;
+  color: #fff;
+}
+
+/* Received bundle: scrolls internally instead of growing the whole page --
+   a large photo or a multi-file bundle used to push page height past the
+   viewport and put a scrollbar on <body> itself. */
+#held-content {
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+.received-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #262a33;
+}
+.received-item:last-of-type {
+  border-bottom: none;
+}
+.received-item .held-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.received-item img {
+  max-width: 100%;
+  max-height: 220px;
+  border-radius: 6px;
+  display: block;
+  margin-bottom: 0.35rem;
+}
+.received-item a {
+  color: #6ea8ff;
+  display: inline-block;
+}
+#activity-line {
+  font-size: 0.75rem;
+  color: #9aa0a6;
+  min-height: 1.1em;
+  margin-bottom: 0.5rem;
+}
+#held-meta {
+  font-size: 0.75rem;
+  color: #9aa0a6;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #262a33;
+}
+
+/* Your devices -- fills otherwise-empty space next to Received with
+   something genuinely useful: a live view of this person's own devices. */
+#devices-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+#devices-list li {
+  font-size: 0.85rem;
+  color: #cfd3da;
+  padding: 0.35rem 0.5rem;
+  background: #1a1d24;
+  border-radius: 6px;
+}
+
+@media (max-width: 900px) {
+  #app-panel {
+    grid-template-columns: 1fr;
+  }
+  #held-section, #devices-section {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  #main-grid {
+    grid-template-columns: 1fr;
+  }
+  #camera-frame {
+    width: 100%;
+    max-width: 300px;
+  }
+}

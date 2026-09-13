@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gesture-hold-transfer",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["run_https.py", "--port", "8443"],
+      "port": 8443,
+      "url": "https://localhost:8443"
+    },
+    {
+      "name": "static-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8090", "--directory", "frontend"],
+      "port": 8090
+    }
+  ]
+}
