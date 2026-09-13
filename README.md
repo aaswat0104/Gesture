@@ -1,221 +1,131 @@
-<div align="center">
+# Gesture Hold & Transfer
 
-# ✋ Gestures
+Touchless, multi-device, multi-person file transfer over local WiFi. Select text/files/images on one device, **close your hand (fist)** to grab them, walk to another device, and **open your hand (palm)** to receive — the Huawei AirShare model, built on MediaPipe hand tracking + InsightFace recognition, with no cloud, no accounts, and no internet required.
 
-### Touchless, multi-device file transfer — grab with a fist, release with an open palm
-
-*Select a file on one device, close your hand, walk to another device, open your hand — it's there.*
-
-[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/backend-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![MediaPipe](https://img.shields.io/badge/hand%20tracking-MediaPipe-4285F4?logo=google&logoColor=white)](https://developers.google.com/mediapipe)
-[![Tests](https://img.shields.io/badge/tests-29%20passing-2ea44f)](tests/)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white)](#requirements)
-
-</div>
-
----
-
-## What is this?
-
-**Gestures** turns hand movement into a file-transfer gesture, inspired by Huawei's Air Gesture "grab and drop" feature — but cross-platform, local-only, and open. No cables, no AirDrop-style pairing dance, no cloud upload. Just:
-
-```
-  ✊ Close your hand           🚶 Walk over           ✋ Open your hand
-  ───────────────────    ──────────────────    ──────────────────
-   grabs the selected      to any other of        delivers it —
-   file on this device      your devices           transfer done
-```
-
-Every device on your WiFi that's running the app becomes a pickup/drop-off point. Multiple people can use it **at the same time**, each with their own transfers, with zero cross-talk.
-
----
-
-## ✨ Highlights
-
-| | |
-|---|---|
-| 🖐️ **Gesture-native** | Close (fist) = grab · Open (palm) = release. No buttons for the actual transfer. |
-| 📦 **Multi-file bundles** | Select text *and* several images/files at once — one grab moves all of them together, atomically. |
-| 👥 **True multi-user** | Person A and Person B transfer independently and simultaneously; no shared state leaks between them. |
-| 🧠 **Smart gesture filter** | A 3-test confidence engine (pose clarity, motion, stability) throws out fidgeting and hand-relaxation — only intentional gestures fire. |
-| 🪪 **Face + hand recognition** | Walk up to any device already running the app and it recognizes you — no code to type. |
-| 🔌 **Self-healing connections** | Drops WiFi mid-session? Auto-reconnects with backoff and rejoins as the same person. Link codes survive a 15-minute grace window. |
-| 🎥 **Full camera control** | One-click camera on/off that actually stops the hardware and every background loop touching it. |
-| ❌ **Cancel anytime** | An in-flight transfer (on either end) can be aborted with one click — no gesture required. |
-| 🔒 **Local-first** | Self-signed HTTPS on your LAN. No external tunnel, no cloud relay, nothing leaves your WiFi. |
-| 🗄️ **Session-only state** | Everything lives in memory. Restart the server, everything's gone — by design. |
-
----
-
-## 🚀 Quick Start
+## Quick Start
 
 ```powershell
 # 1. Install dependencies
 pip install -r backend/requirements.txt
 
-# 2. Run the server (face model auto-downloads to D: drive, not C:)
+# 2. Run the server (models auto-download to D: drive by default)
 python run_https.py
+
+# 3. Open on any device on the same WiFi
+https://<your-lan-ip>:8443
+# Accept the self-signed certificate warning on first load
 ```
 
-```
-====================================================================
-  On this PC:        https://localhost:8443
-  On your phone:     https://192.168.31.49:8443
-  (accept the self-signed certificate warning on first load)
-====================================================================
-```
+See [QUICK_START.md](QUICK_START.md) for a step-by-step walkthrough of the gesture flow.
 
-Open that URL on **every device** you want in the transfer group — same WiFi, no VPN, no port forwarding.
+## How It Works
 
----
+1. **Select** something on a device — type text, or choose one or more files/images (multi-file selection bundles everything into one transfer).
+2. **Close your hand (fist)** on that device — grabs the selection; it enters transit.
+3. **Walk to another device** — the item stays "in transit," visible with a live preview and a **Cancel** button on every device this person is signed into.
+4. **Open your hand (palm)** on a *different* device — delivers the whole bundle there. Opening your hand on the same device that grabbed it does nothing (prevents accidental self-delivery — see [Bugs/001](Bugs/001-shared-open-hand-self-delivery.md)).
 
-## 🎬 How a Transfer Actually Works
+Transfers are **person-tracked, not device-tracked**: the same person's laptop, phone, and tablet all recognize each other (via a link code, or automatically via face recognition once one device has seen you), while a different person using the app at the same time is fully isolated — no crosstalk, no artificial cap on how many people or devices can be connected at once.
 
-```mermaid
-sequenceDiagram
-    participant A as Device A (Laptop)
-    participant S as Server (in-memory)
-    participant B as Device B (Phone)
+## Features
 
-    A->>A: Select a file / type text
-    A->>S: ✊ Close hand → grab()
-    S-->>A: "You're carrying this" + Cancel
-    S-->>B: "Incoming from Laptop" + Cancel
-    Note over A,B: Walk from Device A to Device B
-    B->>S: ✋ Open hand → release()
-    S-->>B: Delivered ✓
-    S-->>A: "Delivered to Phone"
-```
+- **Gesture-based transfer** — close hand to grab, open hand to release, cross-device only
+- **Multi-file bundles** — select text plus any number of files/images, grab once, deliver all of them together
+- **Multi-device, multi-person** — several people can each use several devices simultaneously with no interference
+- **Cancel anytime** — abort an in-flight transfer from any of your devices without a gesture
+- **Camera on/off toggle** — fully stops the camera, hand detection, and face frames when off (saves CPU/battery)
+- **Auto-reconnect** — survives WiFi blips and phone screen locks (exponential backoff)
+- **15-minute grace period** — a dropped socket doesn't invalidate your link code instantly
+- **Face recognition auto-join** — walk up to a second device and it recognizes you, no code needed
+- **Gesture discrimination** — a 3-test confidence filter (pose confidence, motion spike, gesture lock) rejects fidgeting and accidental hand-relaxing
+- **Local-only** — self-signed HTTPS on your LAN; nothing leaves your network, nothing persists after the server restarts
 
-Opening your hand on the **same device** that grabbed the item is a deliberate no-op — you have to actually move to a different device for the release to count. That's what makes this a *transfer*, not a toggle.
+## System Requirements
 
----
+- **OS**: Windows 10/11 (paths and scripts are Windows-oriented; the Python/FastAPI core is portable)
+- **Storage**: ~340MB for face-recognition models — configurable via `GESTURE_HOLD_STORAGE` (defaults to `D:\gesture-hold-data`, falls back to `~/.gesture-hold-data` if unavailable)
+- **Camera**: one per device, for hand tracking and face recognition
+- **Network**: local WiFi only — no internet needed to run
 
-## 🖥️ The Interface
+## Documentation
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  ✋ Gestures                                    2 people online (3)  │
-├───────────────────┬───────────────────────────────────────────────┬─┤
-│                    │  Close your hand (fist) to grab this          │
-│    [ live camera ] │  ┌───────────────────────────────────────┐   │
-│    [ hand overlay ]│  │ Type text to hold...                    │   │
-│                    │  └───────────────────────────────────────┘   │
-│  [ Turn camera off]│  🖼 photo1.jpg ×   🖼 photo2.jpg ×  📄 doc ×  │
-│                    │                                                │
-│  hand: Open (92%)  ├────────────────────────────────────────────────┤
-│  face: recognized  │  ⚠ You're carrying this          [ Cancel ]   │
-│                    ├─────────────────────────┬──────────────────────┤
-│                    │  Received                │  Your devices        │
-│                    │  "here's the file!"       │  • laptop (this)     │
-│                    │  [ image preview ]        │  • phone             │
-│                    │                            │  • tablet             │
-└───────────────────┴─────────────────────────┴──────────────────────┘
-```
+| Document | Purpose |
+|----------|---------|
+| **[QUICK_START.md](QUICK_START.md)** | Step-by-step gesture flow, color-coded confidence, common mistakes |
+| **[DEPLOYMENT.md](DEPLOYMENT.md)** | Full setup, multi-user flows, troubleshooting |
+| **[GESTURE_DEBUG.md](GESTURE_DEBUG.md)** | How gesture classification + discrimination works |
+| **[IMPROVEMENTS.md](IMPROVEMENTS.md)** | Historical technical changelog |
+| **[Bugs/](Bugs/README.md)** | Every real bug hit during development — symptom, root cause, fix, verification |
 
-Every gesture readout is **color-coded live**:
+## Configuration
 
-| Color | Confidence | Meaning |
-|:---:|:---:|---|
-| 🟢 | ≥ 70% | High confidence — the gesture will fire |
-| 🟠 | 40–70% | Medium — may or may not register |
-| ⚫ | < 40% | Too low — treated as fidgeting, ignored |
+| Environment Variable | Default | Purpose |
+|---|---|---|
+| `GESTURE_HOLD_STORAGE` | `D:\gesture-hold-data` | Where face-recognition models download to |
+| `GESTURE_FACE_GPU` | `0` (CPU) | Set to `1` to opt into DirectML GPU inference for face recognition — off by default because it has been observed to crash the process natively on some GPUs; see [Bugs/003](Bugs/003-directml-native-crash.md) |
+| `GESTURE_FACE_MODEL` | `buffalo_l` | InsightFace model bundle name |
+| `GESTURE_FACE_MIN_DET` | `0.5` | Minimum face-detection confidence to accept a match |
 
----
-
-## 🧩 Architecture
+## Architecture
 
 ```
-┌─ Browser (per device) ───────────────────────────────────────────┐
-│  MediaPipe HandLandmarker  →  landmarks only sent over the wire  │
-│  Camera JPEG (throttled)   →  face frames, only every 2–6s       │
-│  WebSocket client          →  auto-reconnect, exponential backoff│
-└────────────────────────────────┬──────────────────────────────────┘
-                                  │ wss://
-┌─────────────────────────────────▼──────────────────────────────────┐
-│  FastAPI + one /ws endpoint (backend/main.py)                      │
-│  ├─ Gesture classifier (TensorFlow Lite, CPU)                      │
-│  ├─ Gesture discriminator (pose + motion + stability, 3-test)      │
-│  ├─ Hand geometry ID (lightweight, no extra model)                 │
-│  ├─ Face recognition (InsightFace buffalo_l, CPU by default)       │
-│  └─ SessionManager — grab() / release() / cancel_transfer()        │
-│     in-memory only, 15-min disconnect grace period                 │
-└──────────────────────────────────────────────────────────────────┘
+Any device (browser)
+├── Camera feed + MediaPipe HandLandmarker (local, ~15fps)
+├── Live gesture readout (color-coded confidence: green/orange/gray)
+├── Multi-file selection queue -> one bundled grab
+└── WebSocket: landmarks out, gesture/transfer/presence updates in
+
+Server (FastAPI + Uvicorn, one process)
+├── Gesture classification (TensorFlow Lite, CPU)
+├── Gesture discrimination (pose confidence + motion spike + gesture lock)
+├── Face recognition (InsightFace SCRFD + ArcFace, CPU by default)
+├── SessionManager: identity, presence, and the grab/carry/release state machine
+└── In-memory only -- nothing persists across a restart, 15-min grace on disconnect
+
+Network: local WiFi only, self-signed HTTPS certificate (auto-generated on first run)
 ```
 
-No database. No message queue. No microservices. One process, in-memory state, because the actual scale here is "a handful of people in one room" — not a system that needs to survive a restart.
-
----
-
-## 📁 Project Layout
-
-```
-backend/
-├── main.py                  FastAPI app + the one /ws WebSocket endpoint
-├── session_manager.py       grab / release / cancel state machine
-├── gesture_discriminator.py 3-test confidence filter (no fidget triggers)
-├── hand_identifier.py       hand-geometry person identification
-├── face_engine.py           SCRFD + ArcFace face recognition (CPU)
-├── inference.py             gesture classification (TensorFlow Lite)
-├── storage_config.py        redirects model downloads off C: drive
-└── clarification.py         small rule-based "what do you mean?" layer
-
-frontend/
-├── index.html               layout
-├── app.js                   camera, gestures, WebSocket, rendering
-└── style.css                theme
-
-tests/                       29 tests, session state machine + gestures
-Bugs/                        every real bug hit, root cause, and fix
-```
-
----
-
-## 🛠️ Requirements
-
-- Windows 10/11
-- A webcam
-- Everyone on the same WiFi (no internet required)
-- Free space on **any** drive for the ~340MB face model (configurable, defaults to `D:\gesture-hold-data`)
-
-```powershell
-# Point model storage somewhere else if D: isn't available:
-$env:GESTURE_HOLD_STORAGE = "E:\my-models"
-python run_https.py
-```
-
----
-
-## 🧪 Testing
+## Testing
 
 ```bash
-python -m pytest tests/ -v      # 29 tests: state machine, gestures, grace period
-curl -k https://localhost:8443/status   # live multi-user status
+# Full unit test suite
+python -m pytest tests/ -v
+
+# Check live multi-user status
+curl -k https://localhost:8443/status
+
+# Verify model storage location
+python -c "from backend.storage_config import get_storage_dir; print(get_storage_dir())"
 ```
 
----
+## Troubleshooting
 
-## 📚 Docs
+**Gestures won't fire?**
+Check the gesture-readout color: green = will fire, orange = borderline, gray = too low confidence (make a clearer fist / more open palm). See [GESTURE_DEBUG.md](GESTURE_DEBUG.md).
 
-| Doc | What's in it |
-|---|---|
-| [DEPLOYMENT.md](DEPLOYMENT.md) | Full setup, multi-user walkthrough, troubleshooting |
-| [QUICK_START.md](QUICK_START.md) | The 4-step transfer flow, gesture meanings |
-| [GESTURE_DEBUG.md](GESTURE_DEBUG.md) | How the confidence system works, how to test your setup |
-| [IMPROVEMENTS.md](IMPROVEMENTS.md) | Technical changelog |
-| [Bugs/](Bugs/) | Every real bug found, its root cause, and the exact fix |
+**Opened your hand but nothing transferred?**
+You may have opened it on the *same* device that grabbed the item — that's intentional (see [Bugs/001](Bugs/001-shared-open-hand-self-delivery.md)). Walk to a different device and open your hand there.
 
----
+**"Unknown link code" after a WiFi blip?**
+Codes survive 15 minutes of disconnection — rejoin within that window with the same code. See [Bugs/004](Bugs/004-link-code-instant-destruction.md).
 
-## 🙏 Credits
+**Server exits with no error message?**
+If it happens right after a "ready on gpu (DirectML)" log line, that's a native GPU crash — face recognition defaults to CPU now specifically to avoid this. Confirm `GESTURE_FACE_GPU` isn't set to `1`. See [Bugs/003](Bugs/003-directml-native-crash.md).
 
-- Hand tracking base: [kinivi/hand-gesture-recognition-mediapipe](https://github.com/kinivi/hand-gesture-recognition-mediapipe)
-- Hand landmarks: [MediaPipe HandLandmarker](https://developers.google.com/mediapipe)
-- Face recognition: [InsightFace](https://github.com/deepinsight/insightface) (buffalo_l — SCRFD + ArcFace)
+**Models downloading to C: instead of D:?**
+```powershell
+$env:GESTURE_HOLD_STORAGE = "D:\gesture-hold-data"
+python run_https.py
+```
+
+## Credits
+
+- Hand detection: MediaPipe HandLandmarker
+- Face recognition: InsightFace (`buffalo_l`, SCRFD + ArcFace)
+- Gesture classification: TensorFlow Lite
 - Server: FastAPI + Uvicorn
+- Originally inspired by [kinivi/hand-gesture-recognition-mediapipe](https://github.com/kinivi/hand-gesture-recognition-mediapipe)
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Open source — use and modify freely.
